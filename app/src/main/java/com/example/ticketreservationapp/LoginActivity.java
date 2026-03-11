@@ -97,7 +97,8 @@ public class LoginActivity extends AppCompatActivity {
 
             } catch (Exception e) {
                 e.printStackTrace();
-                handler.post(() -> Toast.makeText(LoginActivity.this, "Network Error: " + e.getMessage(), Toast.LENGTH_LONG).show());
+                handler.post(() -> Toast
+                        .makeText(LoginActivity.this, "Network Error: " + e.getMessage(), Toast.LENGTH_LONG).show());
             }
         });
     }

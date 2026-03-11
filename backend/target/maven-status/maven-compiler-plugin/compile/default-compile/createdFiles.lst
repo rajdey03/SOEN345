@@ -1,0 +1,16 @@
+com\example\ticketreservation\dto\RegistrationRequest.class
+com\example\ticketreservation\exception\UserAlreadyExistsException.class
+com\example\ticketreservation\config\SecurityConfig.class
+com\example\ticketreservation\service\RegistrationService.class
+com\example\ticketreservation\dto\LoginResponse.class
+com\example\ticketreservation\model\UserRole.class
+com\example\ticketreservation\dto\RegistrationResponse.class
+com\example\ticketreservation\exception\GlobalExceptionHandler.class
+com\example\ticketreservation\service\NotificationServiceImpl.class
+com\example\ticketreservation\exception\InvalidRegistrationException.class
+com\example\ticketreservation\TicketReservationApplication.class
+com\example\ticketreservation\dto\LoginRequest.class
+com\example\ticketreservation\model\User.class
+com\example\ticketreservation\controller\RegistrationController.class
+com\example\ticketreservation\repository\UserRepository.class
+com\example\ticketreservation\service\NotificationService.class

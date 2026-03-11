@@ -1,0 +1,109 @@
+# ============================================================
+# CI/CD Pipeline for Ticket Reservation Application
+# Triggers on every push and pull request to main branch.
+# Builds the Spring Boot backend, runs JUnit 5 tests,
+# and builds the Android app.
+# ============================================================
+
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  # ==================== Backend Build & Test ====================
+  backend-build-and-test:
+    name: Backend - Build & Test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: "17"
+          distribution: "temurin"
+          cache: "maven"
+
+      - name: Build with Maven
+        run: mvn clean compile -B
+
+      - name: Run unit and integration tests
+        run: mvn test -B
+
+      - name: Package application
+        run: mvn package -B -DskipTests
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-test-results
+          path: backend/target/surefire-reports/
+
+      - name: Upload JAR artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-jar
+          path: backend/target/*.jar
+
+  # ==================== Android Build ====================
+  android-build:
+    name: Android - Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: "17"
+          distribution: "temurin"
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x ./gradlew
+
+      - name: Build Android app (debug)
+        run: ./gradlew assembleDebug
+
+      - name: Run Android unit tests
+        run: ./gradlew testDebugUnitTest
+
+      - name: Upload Android test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-test-results
+          path: app/build/test-results/
+
+  # ==================== Combined Status Check ====================
+  ci-status:
+    name: CI Status
+    needs: [backend-build-and-test, android-build]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Check CI results
+        run: |
+          if [[ "${{ needs.backend-build-and-test.result }}" == "success" && "${{ needs.android-build.result }}" == "success" ]]; then
+            echo "All CI checks passed!"
+            exit 0
+          else
+            echo "Some CI checks failed."
+            echo "Backend: ${{ needs.backend-build-and-test.result }}"
+            echo "Android: ${{ needs.android-build.result }}"
+            exit 1
+          fi
