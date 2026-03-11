@@ -174,7 +174,7 @@ your machine on port 8080, the emulator reaches it automatically.
 ## CI/CD Pipeline
 
 The GitHub Actions workflow (`.github/workflows/ci-cd.yml`) triggers on
-every push to `main` or `develop` and on pull requests to `main`. It:
+every push to `main` and on pull requests to `main`. It:
 
 1. Builds the Spring Boot backend with Maven
 2. Runs JUnit 5 tests (once added)
