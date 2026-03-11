@@ -177,7 +177,7 @@ The GitHub Actions workflow (`.github/workflows/ci-cd.yml`) triggers on
 every push to `main` or `develop` and on pull requests to `main`. It:
 
 1. Builds the Spring Boot backend with Maven
-2. Runs JUnit 5 tests (once the testing teammate adds them)
+2. Runs JUnit 5 tests (once added)
 3. Builds the Android app (debug)
 4. Runs Android unit tests
 5. Uploads test results as artifacts
