@@ -1,0 +1,3 @@
+com\example\ticketreservation\controller\RegistrationControllerIntegrationTest.class
+com\example\ticketreservation\service\RegistrationServiceTest.class
+com\example\ticketreservation\TicketReservationApplicationTests.class
