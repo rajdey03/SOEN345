@@ -104,6 +104,50 @@ Started TicketReservationApplication in X seconds
 
 The server is now running on **http://localhost:8080**
 
+### Email Confirmation Setup
+
+Registration confirmation emails are supported, but real delivery only
+works if the machine running the backend has a valid SendGrid API key.
+
+Before starting the backend, set:
+
+```bash
+export SENDGRID_API_KEY=your_real_sendgrid_api_key
+```
+
+Then run:
+
+```bash
+cd backend
+mvn spring-boot:run
+```
+
+Important notes:
+
+- If `SENDGRID_API_KEY` is missing, registration can still succeed, but
+  email delivery will fail at runtime.
+- The configured sender in
+  `backend/src/main/resources/application.properties` must be a verified
+  sender in SendGrid.
+- Team members can all use this feature, but only if they run the
+  backend with access to a valid SendGrid API key.
+- GitHub Actions and local tests do **not** send real emails. Tests use
+  mocked mail dependencies so CI can pass without SMTP credentials.
+
+### Team Readiness
+
+The implementation is 
+only ready for real email delivery if the team also shares a valid
+runtime setup:
+
+- Java 17 and Maven installed
+- The latest merged code pulled locally
+- A valid `SENDGRID_API_KEY` configured in the environment
+- A verified SendGrid sender address matching `spring.mail.from`
+
+Without those, teammates can still register and log in locally, but they
+should not expect a real confirmation email to arrive.
+
 ---
 
 ## Verify It Works
@@ -131,6 +175,9 @@ You should see: **OK**
 ```bash
 curl -X POST http://localhost:8080/api/register -H "Content-Type: application/json" -d "{\"first_name\":\"John\",\"last_name\":\"Doe\",\"email\":\"john@example.com\",\"password\":\"test123\"}"
 ```
+
+If mail is configured correctly, the registered email address should
+receive a confirmation email after this request succeeds.
 
 ### Example Login (curl)
 
@@ -181,5 +228,19 @@ every push to `main` and on pull requests to `main`. It:
 3. Builds the Android app (debug)
 4. Runs Android unit tests
 5. Uploads test results as artifacts
+
+### Run Backend Tests Locally
+
+From the `backend` folder:
+
+```bash
+mvn test
+```
+
+To run only the notification email unit test:
+
+```bash
+mvn test -Dtest=NotificationServiceImplTest
+```
 
 ---
