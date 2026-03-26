@@ -13,6 +13,9 @@
 .externalNativeBuild
 .cxx
 local.properties
+.idea
+*.class
+*.lst
 
 # Maven build output
 target/

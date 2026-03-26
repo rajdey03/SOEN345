@@ -2,10 +2,19 @@ package com.example.ticketreservation.model;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
-@Table(name = "users")
+@Table(
+        name = "users",
+        indexes = {
+                @Index(name = "idx_users_email", columnList = "email"),
+                @Index(name = "idx_users_phone_number", columnList = "phone_number"),
+                @Index(name = "idx_users_role", columnList = "role")
+        }
+)
 public class User {
 
     @Id
@@ -40,6 +49,15 @@ public class User {
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @OneToOne(mappedBy = "user")
+    private Organizer organizer;
+
+    @OneToMany(mappedBy = "user")
+    private List<Reservation> reservations = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user")
+    private List<NotificationLog> notificationLogs = new ArrayList<>();
 
     public User() {
     }
@@ -138,5 +156,17 @@ public class User {
 
     public LocalDateTime getUpdatedAt() {
         return updatedAt;
+    }
+
+    public Organizer getOrganizer() {
+        return organizer;
+    }
+
+    public List<Reservation> getReservations() {
+        return reservations;
+    }
+
+    public List<NotificationLog> getNotificationLogs() {
+        return notificationLogs;
     }
 }

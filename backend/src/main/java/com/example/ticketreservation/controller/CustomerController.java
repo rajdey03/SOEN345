@@ -2,7 +2,12 @@ package com.example.ticketreservation.controller;
 
 import com.example.ticketreservation.dto.*;
 import com.example.ticketreservation.model.Event;
+import com.example.ticketreservation.model.EventStatus;
+import com.example.ticketreservation.model.Organizer;
 import com.example.ticketreservation.model.Reservation;
+import com.example.ticketreservation.model.ReservationStatus;
+import com.example.ticketreservation.model.User;
+import com.example.ticketreservation.model.UserRole;
 
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -10,7 +15,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -47,14 +54,28 @@ public class CustomerController {
 
         // TODO: delegate to EventService.getAllUpcomingEvents()
         List<Event> placeholderEvents = List.of(
-                new Event(UUID.randomUUID(), "Summer Concert 2026",
-                        "Live outdoor concert", "CONCERT", "Olympic Stadium",
-                        LocalDateTime.of(2026, 7, 15, 19, 0),
-                        new BigDecimal("49.99"), 500, 350),
-                new Event(UUID.randomUUID(), "Avengers: Secret Wars",
-                        "Marvel blockbuster movie", "MOVIE", "AMC Cinema",
-                        LocalDateTime.of(2026, 5, 1, 20, 30),
-                        new BigDecimal("15.00"), 200, 120)
+                buildPlaceholderEvent(
+                        "Summer Concert 2026",
+                        "Live outdoor concert",
+                        "CONCERT",
+                        "Olympic Stadium",
+                        LocalDate.of(2026, 7, 15),
+                        LocalTime.of(19, 0),
+                        LocalTime.of(22, 0),
+                        500,
+                        350
+                ),
+                buildPlaceholderEvent(
+                        "Avengers: Secret Wars",
+                        "Marvel blockbuster movie",
+                        "MOVIE",
+                        "AMC Cinema",
+                        LocalDate.of(2026, 5, 1),
+                        LocalTime.of(20, 30),
+                        LocalTime.of(23, 0),
+                        200,
+                        120
+                )
         );
         return ResponseEntity.ok(placeholderEvents);
     }
@@ -71,10 +92,17 @@ public class CustomerController {
 
         // TODO: delegate to EventService.search(keyword, category, date)
         List<Event> placeholderResults = List.of(
-                new Event(UUID.randomUUID(), "Jazz Night",
-                        "Smooth jazz evening", "CONCERT", "Blue Note Club",
-                        LocalDateTime.of(2026, 6, 10, 21, 0),
-                        new BigDecimal("35.00"), 100, 60)
+                buildPlaceholderEvent(
+                        "Jazz Night",
+                        "Smooth jazz evening",
+                        "CONCERT",
+                        "Blue Note Club",
+                        LocalDate.of(2026, 6, 10),
+                        LocalTime.of(21, 0),
+                        LocalTime.of(23, 0),
+                        100,
+                        60
+                )
         );
         return ResponseEntity.ok(placeholderResults);
     }
@@ -87,16 +115,25 @@ public class CustomerController {
             @Valid @RequestBody ReservationRequest request) {
 
         // TODO: delegate to ReservationService.create(request)
-        Reservation placeholder = new Reservation(
-                UUID.randomUUID(),
-                request.getCustomerId(),
-                request.getEventId(),
+        Reservation placeholder = new Reservation();
+        placeholder.setReservationId(UUID.randomUUID());
+        placeholder.setUser(buildPlaceholderUser(request.getCustomerId()));
+        placeholder.setEvent(buildPlaceholderEvent(
                 "Placeholder Event",
-                request.getNumberOfTickets(),
-                new BigDecimal("49.99").multiply(BigDecimal.valueOf(request.getNumberOfTickets())),
-                "CONFIRMED",
-                LocalDateTime.now()
-        );
+                "Placeholder description",
+                "CONCERT",
+                "Placeholder Venue",
+                LocalDate.now().plusDays(7),
+                LocalTime.of(19, 0),
+                LocalTime.of(21, 0),
+                100,
+                100 - request.getNumberOfTickets()
+        ));
+        placeholder.setQuantity(request.getNumberOfTickets());
+        placeholder.setTotalPrice(new BigDecimal("49.99")
+                .multiply(BigDecimal.valueOf(request.getNumberOfTickets())));
+        placeholder.setStatus(ReservationStatus.CONFIRMED);
+        placeholder.setReservationDate(LocalDateTime.now());
         return ResponseEntity.status(HttpStatus.CREATED).body(placeholder);
     }
 
@@ -135,5 +172,52 @@ public class CustomerController {
         placeholder.setReservedAt(LocalDateTime.now());
 
         return ResponseEntity.ok(placeholder);
+    }
+
+    private Event buildPlaceholderEvent(String title,
+                                        String description,
+                                        String category,
+                                        String location,
+                                        LocalDate eventDate,
+                                        LocalTime startTime,
+                                        LocalTime endTime,
+                                        int totalCapacity,
+                                        int availableCapacity) {
+        Event event = new Event();
+        event.setEventId(UUID.randomUUID());
+        event.setOrganizer(buildPlaceholderOrganizer());
+        event.setTitle(title);
+        event.setDescription(description);
+        event.setCategory(category);
+        event.setLocation(location);
+        event.setEventDate(eventDate);
+        event.setStartTime(startTime);
+        event.setEndTime(endTime);
+        event.setTotalCapacity(totalCapacity);
+        event.setAvailableCapacity(availableCapacity);
+        event.setStatus(EventStatus.ACTIVE);
+        return event;
+    }
+
+    private Organizer buildPlaceholderOrganizer() {
+        Organizer organizer = new Organizer();
+        organizer.setOrganizerId(UUID.randomUUID());
+        organizer.setUser(buildPlaceholderUser(UUID.randomUUID()));
+        organizer.setOrganizationName("Placeholder Organizer");
+        organizer.setContactEmail("organizer@example.com");
+        organizer.setContactPhone("+10000000000");
+        return organizer;
+    }
+
+    private User buildPlaceholderUser(UUID userId) {
+        User user = new User();
+        user.setUserId(userId);
+        user.setFirstName("Placeholder");
+        user.setLastName("User");
+        user.setEmail("placeholder@example.com");
+        user.setPasswordHash("hashed");
+        user.setRole(UserRole.CUSTOMER);
+        user.setVerified(true);
+        return user;
     }
 }

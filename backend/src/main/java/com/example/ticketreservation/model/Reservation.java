@@ -1,38 +1,64 @@
 package com.example.ticketreservation.model;
 
+import jakarta.persistence.*;
+import org.hibernate.annotations.Check;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
-/**
- * Plain Java model representing a ticket reservation.
- * No persistence annotations — this is purely an in-memory representation.
- */
+@Entity
+@Table(
+        name = "reservations",
+        indexes = {
+                @Index(name = "idx_reservations_user_id", columnList = "user_id"),
+                @Index(name = "idx_reservations_event_id", columnList = "event_id"),
+                @Index(name = "idx_reservations_status", columnList = "status"),
+                @Index(name = "idx_reservations_reservation_date", columnList = "reservation_date")
+        }
+)
+@Check(constraints = "quantity > 0 AND total_price >= 0")
 public class Reservation {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "reservation_id", nullable = false, updatable = false)
     private UUID reservationId;
-    private UUID customerId;
-    private UUID eventId;
-    private String eventTitle;
-    private int numberOfTickets;
-    private BigDecimal totalPrice;
-    private String status;         // e.g. "CONFIRMED", "CANCELLED"
-    private LocalDateTime createdAt;
 
-    public Reservation() {
-    }
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
-    public Reservation(UUID reservationId, UUID customerId, UUID eventId,
-                       String eventTitle, int numberOfTickets, BigDecimal totalPrice,
-                       String status, LocalDateTime createdAt) {
-        this.reservationId = reservationId;
-        this.customerId = customerId;
-        this.eventId = eventId;
-        this.eventTitle = eventTitle;
-        this.numberOfTickets = numberOfTickets;
-        this.totalPrice = totalPrice;
-        this.status = status;
-        this.createdAt = createdAt;
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "event_id", nullable = false)
+    private Event event;
+
+    @Column(name = "reservation_date", nullable = false)
+    private LocalDateTime reservationDate;
+
+    @Column(name = "quantity", nullable = false)
+    private int quantity;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    private ReservationStatus status = ReservationStatus.PENDING;
+
+    @Column(name = "total_price", nullable = false, precision = 10, scale = 2)
+    private BigDecimal totalPrice = BigDecimal.ZERO;
+
+    @OneToMany(mappedBy = "reservation")
+    private List<Ticket> tickets = new ArrayList<>();
+
+    @OneToMany(mappedBy = "reservation")
+    private List<NotificationLog> notificationLogs = new ArrayList<>();
+
+    @PrePersist
+    protected void onCreate() {
+        if (reservationDate == null) {
+            reservationDate = LocalDateTime.now();
+        }
     }
 
     public UUID getReservationId() {
@@ -43,36 +69,44 @@ public class Reservation {
         this.reservationId = reservationId;
     }
 
-    public UUID getCustomerId() {
-        return customerId;
+    public User getUser() {
+        return user;
     }
 
-    public void setCustomerId(UUID customerId) {
-        this.customerId = customerId;
+    public void setUser(User user) {
+        this.user = user;
     }
 
-    public UUID getEventId() {
-        return eventId;
+    public Event getEvent() {
+        return event;
     }
 
-    public void setEventId(UUID eventId) {
-        this.eventId = eventId;
+    public void setEvent(Event event) {
+        this.event = event;
     }
 
-    public String getEventTitle() {
-        return eventTitle;
+    public LocalDateTime getReservationDate() {
+        return reservationDate;
     }
 
-    public void setEventTitle(String eventTitle) {
-        this.eventTitle = eventTitle;
+    public void setReservationDate(LocalDateTime reservationDate) {
+        this.reservationDate = reservationDate;
     }
 
-    public int getNumberOfTickets() {
-        return numberOfTickets;
+    public int getQuantity() {
+        return quantity;
     }
 
-    public void setNumberOfTickets(int numberOfTickets) {
-        this.numberOfTickets = numberOfTickets;
+    public void setQuantity(int quantity) {
+        this.quantity = quantity;
+    }
+
+    public ReservationStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(ReservationStatus status) {
+        this.status = status;
     }
 
     public BigDecimal getTotalPrice() {
@@ -83,19 +117,11 @@ public class Reservation {
         this.totalPrice = totalPrice;
     }
 
-    public String getStatus() {
-        return status;
+    public List<Ticket> getTickets() {
+        return tickets;
     }
 
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public List<NotificationLog> getNotificationLogs() {
+        return notificationLogs;
     }
 }
