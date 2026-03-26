@@ -35,4 +35,25 @@ public class GlobalExceptionHandler {
         );
         return ResponseEntity.badRequest().body(errors);
     }
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleNotFound(ResourceNotFoundException ex) {
+        return errorResponse(HttpStatus.NOT_FOUND, ex.getMessage());
+    }
+
+    @ExceptionHandler(UnauthorizedAdminActionException.class)
+    public ResponseEntity<Map<String, String>> handleForbidden(UnauthorizedAdminActionException ex) {
+        return errorResponse(HttpStatus.FORBIDDEN, ex.getMessage());
+    }
+
+    @ExceptionHandler(InvalidEventOperationException.class)
+    public ResponseEntity<Map<String, String>> handleInvalidEventOperation(InvalidEventOperationException ex) {
+        return errorResponse(HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
+
+    private ResponseEntity<Map<String, String>> errorResponse(HttpStatus status, String message) {
+        Map<String, String> error = new HashMap<>();
+        error.put("message", message);
+        return ResponseEntity.status(status).body(error);
+    }
 }
