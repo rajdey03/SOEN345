@@ -1,5 +1,5 @@
 CREATE TABLE users (
-    user_id UUID PRIMARY KEY,
+    user_id CHAR(36) PRIMARY KEY,
     first_name VARCHAR(255) NOT NULL,
     last_name VARCHAR(255) NOT NULL,
     email VARCHAR(255) UNIQUE,
@@ -16,8 +16,8 @@ CREATE INDEX idx_users_phone_number ON users (phone_number);
 CREATE INDEX idx_users_role ON users (role);
 
 CREATE TABLE organizers (
-    organizer_id UUID PRIMARY KEY,
-    user_id UUID NOT NULL UNIQUE,
+    organizer_id CHAR(36) PRIMARY KEY,
+    user_id CHAR(36) NOT NULL UNIQUE,
     organization_name VARCHAR(255) NOT NULL,
     contact_email VARCHAR(255),
     contact_phone VARCHAR(255),
@@ -28,8 +28,8 @@ CREATE TABLE organizers (
 CREATE INDEX idx_organizers_user_id ON organizers (user_id);
 
 CREATE TABLE events (
-    event_id UUID PRIMARY KEY,
-    organizer_id UUID NOT NULL,
+    event_id CHAR(36) PRIMARY KEY,
+    organizer_id CHAR(36) NOT NULL,
     title VARCHAR(255) NOT NULL,
     description VARCHAR(4000) NOT NULL,
     category VARCHAR(255) NOT NULL,
@@ -55,9 +55,9 @@ CREATE INDEX idx_events_event_date ON events (event_date);
 CREATE INDEX idx_events_status ON events (status);
 
 CREATE TABLE reservations (
-    reservation_id UUID PRIMARY KEY,
-    user_id UUID NOT NULL,
-    event_id UUID NOT NULL,
+    reservation_id CHAR(36) PRIMARY KEY,
+    user_id CHAR(36) NOT NULL,
+    event_id CHAR(36) NOT NULL,
     reservation_date TIMESTAMP NOT NULL,
     quantity INTEGER NOT NULL,
     status VARCHAR(50) NOT NULL,
@@ -76,9 +76,9 @@ CREATE INDEX idx_reservations_status ON reservations (status);
 CREATE INDEX idx_reservations_reservation_date ON reservations (reservation_date);
 
 CREATE TABLE tickets (
-    ticket_id UUID PRIMARY KEY,
-    reservation_id UUID NOT NULL,
-    event_id UUID NOT NULL,
+    ticket_id CHAR(36) PRIMARY KEY,
+    reservation_id CHAR(36) NOT NULL,
+    event_id CHAR(36) NOT NULL,
     ticket_code VARCHAR(255) NOT NULL UNIQUE,
     seat_number VARCHAR(255),
     ticket_status VARCHAR(50) NOT NULL,
@@ -94,9 +94,9 @@ CREATE INDEX idx_tickets_event_id ON tickets (event_id);
 CREATE INDEX idx_tickets_status ON tickets (ticket_status);
 
 CREATE TABLE notification_log (
-    notification_id UUID PRIMARY KEY,
-    user_id UUID NOT NULL,
-    reservation_id UUID,
+    notification_id CHAR(36) PRIMARY KEY,
+    user_id CHAR(36) NOT NULL,
+    reservation_id CHAR(36),
     channel VARCHAR(50) NOT NULL,
     message_type VARCHAR(50) NOT NULL,
     status VARCHAR(50) NOT NULL,
