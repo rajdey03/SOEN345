@@ -1,17 +1,40 @@
 package com.example.ticketreservationapp;
 
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.EditText;
+import android.widget.Spinner;
+import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class EventBrowseActivity extends AppCompatActivity {
 
     private RecyclerView recyclerViewEvents;
     private EventAdapter eventAdapter;
-    private List<Event> dummyEventList;
+    private List<Event> backendEventList;
+
+    private EditText etSearchEvents;
+    private Spinner spinnerCategory;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -19,24 +42,129 @@ public class EventBrowseActivity extends AppCompatActivity {
         setContentView(R.layout.activity_event_browse);
 
         recyclerViewEvents = findViewById(R.id.recyclerViewEvents);
+        etSearchEvents = findViewById(R.id.etSearchEvents);
+        spinnerCategory = findViewById(R.id.spinnerCategory);
 
         recyclerViewEvents.setLayoutManager(new LinearLayoutManager(this));
 
-        loadDummyData();
-
-        eventAdapter = new EventAdapter(dummyEventList);
+        backendEventList = new ArrayList<>();
+        eventAdapter = new EventAdapter(backendEventList);
         recyclerViewEvents.setAdapter(eventAdapter);
+
+        setupSpinners();
+        setupFilters();
+
+        fetchEventsFromBackend();
     }
 
-    private void loadDummyData() {
-        dummyEventList = new ArrayList<>();
+    private void fetchEventsFromBackend() {
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        Handler handler = new Handler(Looper.getMainLooper());
 
-        dummyEventList.add(new Event("1", "Summer Music Festival", "CONCERT", "Parc Jean-Drapeau, Montreal", "July 15, 2026 - 4:00 PM", 500));
+        executor.execute(() -> {
+            try {
+                URL url = new URL("http://10.0.2.2:8080/api/customers/events");
+                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                connection.setRequestMethod("GET");
+                connection.setRequestProperty("Accept", "application/json");
 
-        dummyEventList.add(new Event("2", "Local Derby: CF Montreal vs TFC", "SPORTS", "Saputo Stadium", "September 5, 2026 - 7:30 PM", 85));
+                int responseCode = connection.getResponseCode();
+                if (responseCode == 200) {
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                    StringBuilder response = new StringBuilder();
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        response.append(line);
+                    }
+                    reader.close();
 
-        dummyEventList.add(new Event("3", "Indie Film Premiere", "MOVIE", "Cinema Banque Scotia", "October 12, 2026 - 8:00 PM", 12));
+                    JSONArray jsonArray = new JSONArray(response.toString());
+                    List<Event> fetchedEvents = new ArrayList<>();
 
-        dummyEventList.add(new Event("4", "Weekend Getaway: Bus to Quebec City", "TRAVEL", "Gare d'autocars de Montreal", "November 20, 2026 - 8:00 AM", 45));
+                    for (int i = 0; i < jsonArray.length(); i++) {
+                        JSONObject obj = jsonArray.getJSONObject(i);
+
+                        String id = obj.getString("eventId");
+                        String title = obj.getString("title");
+                        String category = obj.getString("category");
+                        String location = obj.getString("location");
+
+                        String date = obj.getString("eventDate");
+                        String time = obj.getString("startTime");
+                        String dateTime = date + " - " + time;
+
+                        int availableCapacity = obj.getInt("availableCapacity");
+
+                        fetchedEvents.add(new Event(id, title, category, location, dateTime, availableCapacity));
+                    }
+
+                    handler.post(() -> {
+                        backendEventList.clear();
+                        backendEventList.addAll(fetchedEvents);
+                        eventAdapter.setFilteredList(backendEventList);
+                        Toast.makeText(EventBrowseActivity.this, "Events loaded from API!", Toast.LENGTH_SHORT).show();
+                    });
+
+                } else {
+                    handler.post(() -> Toast.makeText(EventBrowseActivity.this, "Failed to load events", Toast.LENGTH_SHORT).show());
+                }
+                connection.disconnect();
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                handler.post(() -> Toast.makeText(EventBrowseActivity.this, "Network error: " + e.getMessage(), Toast.LENGTH_LONG).show());
+            }
+        });
+    }
+
+    private void setupSpinners() {
+        String[] categories = {"ALL", "CONCERT", "SPORTS", "MOVIE", "TRAVEL"};
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, categories);
+        spinnerCategory.setAdapter(adapter);
+    }
+
+    private void setupFilters() {
+        etSearchEvents.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                filterEvents();
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {}
+        });
+
+        spinnerCategory.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                filterEvents();
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {}
+        });
+    }
+
+    private void filterEvents() {
+        String searchText = etSearchEvents.getText().toString().toLowerCase().trim();
+        String selectedCategory = spinnerCategory.getSelectedItem().toString();
+
+        List<Event> filteredList = new ArrayList<>();
+
+        for (Event event : backendEventList) {
+            boolean matchesSearch = event.getTitle().toLowerCase().contains(searchText) ||
+                    event.getLocation().toLowerCase().contains(searchText);
+
+            boolean matchesCategory = selectedCategory.equals("ALL") ||
+                    event.getCategory().equalsIgnoreCase(selectedCategory);
+
+            if (matchesSearch && matchesCategory) {
+                filteredList.add(event);
+            }
+        }
+        eventAdapter.setFilteredList(filteredList);
     }
 }
