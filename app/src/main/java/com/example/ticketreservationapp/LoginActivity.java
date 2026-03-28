@@ -88,7 +88,9 @@ public class LoginActivity extends AppCompatActivity {
                 handler.post(() -> {
                     if (response_code == 200) {
                         Toast.makeText(LoginActivity.this, "Login Successful!", Toast.LENGTH_SHORT).show();
-                        // TODO: Navigate to the main Events browsing screen
+                        Intent intent = new Intent(LoginActivity.this, EventBrowseActivity.class);
+                        startActivity(intent);
+                        finish();
                     } else {
                         Toast.makeText(LoginActivity.this, "Invalid credentials.", Toast.LENGTH_LONG).show();
                     }

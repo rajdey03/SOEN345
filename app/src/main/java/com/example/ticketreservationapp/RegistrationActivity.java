@@ -140,6 +140,11 @@ public class RegistrationActivity extends AppCompatActivity {
                     if (responseCode == 200 || responseCode == 201) {
                         Toast.makeText(RegistrationActivity.this, "Registration Success! Check your Email/SMS.",
                                 Toast.LENGTH_LONG).show();
+
+                        android.content.Intent intent = new android.content.Intent(RegistrationActivity.this, LoginActivity.class);
+                        startActivity(intent);
+                        finish();
+
                     } else {
                         String errorMsg = parseErrorMessage(responseCode, body);
                         Toast.makeText(RegistrationActivity.this, errorMsg, Toast.LENGTH_LONG).show();

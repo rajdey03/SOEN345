@@ -17,6 +17,11 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
         this.eventList = eventList;
     }
 
+    public void setFilteredList(List<Event> filteredList) {
+        this.eventList = filteredList;
+        notifyDataSetChanged();
+    }
+
     @NonNull
     @Override
     public EventViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
