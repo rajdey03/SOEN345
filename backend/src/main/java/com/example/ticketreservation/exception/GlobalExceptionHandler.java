@@ -51,6 +51,11 @@ public class GlobalExceptionHandler {
         return errorResponse(HttpStatus.BAD_REQUEST, ex.getMessage());
     }
 
+    @ExceptionHandler(InsufficientCapacityException.class)
+    public ResponseEntity<Map<String, String>> handleInsufficientCapacity(InsufficientCapacityException ex) {
+        return errorResponse(HttpStatus.CONFLICT, ex.getMessage());
+    }
+
     private ResponseEntity<Map<String, String>> errorResponse(HttpStatus status, String message) {
         Map<String, String> error = new HashMap<>();
         error.put("message", message);
