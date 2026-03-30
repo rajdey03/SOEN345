@@ -6,7 +6,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -15,10 +14,17 @@ import java.util.List;
 
 public class AdminEventAdapter extends RecyclerView.Adapter<AdminEventAdapter.AdminEventViewHolder> {
 
-    private final List<AdminEvent> eventList;
+    interface AdminEventActionListener {
+        void onEditRequested(AdminEvent event, int position);
+        void onCancelRequested(AdminEvent event, int position);
+    }
 
-    public AdminEventAdapter(List<AdminEvent> eventList) {
+    private final List<AdminEvent> eventList;
+    private final AdminEventActionListener actionListener;
+
+    public AdminEventAdapter(List<AdminEvent> eventList, AdminEventActionListener actionListener) {
         this.eventList = eventList;
+        this.actionListener = actionListener;
     }
 
     @NonNull
@@ -40,33 +46,31 @@ public class AdminEventAdapter extends RecyclerView.Adapter<AdminEventAdapter.Ad
         holder.tvCapacity.setText("Capacity: " + event.getTotalCapacity());
         holder.tvStatus.setText("Status: " + event.getStatus());
 
-        holder.btnEdit.setOnClickListener(v -> {
-            Intent intent = new Intent(v.getContext(), AdminEventFormActivity.class);
-            intent.putExtra(AdminEventFormActivity.EXTRA_MODE, AdminEventFormActivity.MODE_EDIT);
-            intent.putExtra(AdminEventFormActivity.EXTRA_EVENT_ID, event.getEventId());
-            intent.putExtra(AdminEventFormActivity.EXTRA_ORGANIZER_ID, event.getOrganizerId());
-            intent.putExtra(AdminEventFormActivity.EXTRA_TITLE, event.getTitle());
-            intent.putExtra(AdminEventFormActivity.EXTRA_DESCRIPTION, event.getDescription());
-            intent.putExtra(AdminEventFormActivity.EXTRA_CATEGORY, event.getCategory());
-            intent.putExtra(AdminEventFormActivity.EXTRA_LOCATION, event.getLocation());
-            intent.putExtra(AdminEventFormActivity.EXTRA_EVENT_DATE, event.getEventDate());
-            intent.putExtra(AdminEventFormActivity.EXTRA_START_TIME, event.getStartTime());
-            intent.putExtra(AdminEventFormActivity.EXTRA_END_TIME, event.getEndTime());
-            intent.putExtra(AdminEventFormActivity.EXTRA_TOTAL_CAPACITY, event.getTotalCapacity());
-            intent.putExtra(AdminEventFormActivity.EXTRA_STATUS, event.getStatus());
-            v.getContext().startActivity(intent);
-        });
+        holder.btnEdit.setOnClickListener(v -> actionListener.onEditRequested(event, holder.getAdapterPosition()));
 
-        holder.btnCancel.setOnClickListener(v -> Toast.makeText(
-                v.getContext(),
-                "Cancel action will be connected to the admin API next.",
-                Toast.LENGTH_SHORT
-        ).show());
+        holder.btnCancel.setOnClickListener(v -> actionListener.onCancelRequested(event, holder.getAdapterPosition()));
     }
 
     @Override
     public int getItemCount() {
         return eventList.size();
+    }
+
+    public void addEvent(AdminEvent event) {
+        AdminEventListState.addEvent(eventList, event);
+        notifyItemInserted(0);
+    }
+
+    public void updateEvent(int position, AdminEvent event) {
+        if (AdminEventListState.updateEvent(eventList, position, event)) {
+            notifyItemChanged(position);
+        }
+    }
+
+    public void markCancelled(int position) {
+        if (AdminEventListState.markCancelled(eventList, position)) {
+            notifyItemChanged(position);
+        }
     }
 
     static class AdminEventViewHolder extends RecyclerView.ViewHolder {

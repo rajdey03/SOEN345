@@ -1,15 +1,20 @@
 package com.example.ticketreservationapp;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.TextUtils;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.content.SharedPreferences;
+import org.json.JSONObject;
+
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
@@ -17,15 +22,18 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import android.os.Handler;
-import android.os.Looper;
-import org.json.JSONObject;
 
 public class LoginActivity extends AppCompatActivity {
+
+    private static final String PREFS_NAME = "TicketApp";
+    private static final String PREF_USER_ID = "userId";
+    private static final String PREF_ADMIN_USER_ID = "adminUserId";
+    private static final String TEMP_ADMIN_UUID = "319132e6-c2d7-4ccf-bea4-46c4f451e266";
 
     private EditText user_id_input, password_input;
     private Button login_button;
     private TextView text_view_register;
+    private TextView text_view_admin_portal;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,6 +44,7 @@ public class LoginActivity extends AppCompatActivity {
         password_input = findViewById(R.id.etLoginPassword);
         login_button = findViewById(R.id.btnLogin);
         text_view_register = findViewById(R.id.tvGoToRegister);
+        text_view_admin_portal = findViewById(R.id.tvAdminPortal);
 
         login_button.setOnClickListener(v -> validateAndLogin());
 
@@ -43,6 +52,8 @@ public class LoginActivity extends AppCompatActivity {
             Intent intent = new Intent(LoginActivity.this, RegistrationActivity.class);
             startActivity(intent);
         });
+
+        text_view_admin_portal.setOnClickListener(v -> openAdminPortal());
     }
 
     private void validateAndLogin() {
@@ -87,15 +98,18 @@ public class LoginActivity extends AppCompatActivity {
                 }
 
                 int response_code = connection.getResponseCode();
-
                 String userId = null;
+
                 if (response_code == 200) {
-                    BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                    BufferedReader reader = new BufferedReader(
+                            new InputStreamReader(connection.getInputStream(), "utf-8"));
                     StringBuilder sb = new StringBuilder();
                     String line;
-                    while ((line = reader.readLine()) != null)
+                    while ((line = reader.readLine()) != null) {
                         sb.append(line);
+                    }
                     reader.close();
+
                     JSONObject responseJson = new JSONObject(sb.toString());
                     if (responseJson.has("userId") && !responseJson.isNull("userId")) {
                         userId = responseJson.getString("userId");
@@ -106,8 +120,8 @@ public class LoginActivity extends AppCompatActivity {
                 handler.post(() -> {
                     if (response_code == 200) {
                         if (finalUserId != null) {
-                            SharedPreferences prefs = getSharedPreferences("TicketApp", MODE_PRIVATE);
-                            prefs.edit().putString("userId", finalUserId).apply();
+                            SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+                            prefs.edit().putString(PREF_USER_ID, finalUserId).apply();
                         }
                         Toast.makeText(LoginActivity.this, "Login Successful!", Toast.LENGTH_SHORT).show();
                         Intent intent = new Intent(LoginActivity.this, EventBrowseActivity.class);
@@ -125,5 +139,19 @@ public class LoginActivity extends AppCompatActivity {
                         .makeText(LoginActivity.this, "Network Error: " + e.getMessage(), Toast.LENGTH_LONG).show());
             }
         });
+    }
+
+    private void openAdminPortal() {
+        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        prefs.edit().putString(PREF_ADMIN_USER_ID, TEMP_ADMIN_UUID).apply();
+
+        Toast.makeText(
+                this,
+                "Opening Admin Portal with temporary admin access.",
+                Toast.LENGTH_SHORT
+        ).show();
+
+        Intent intent = new Intent(LoginActivity.this, AdminEventListActivity.class);
+        startActivity(intent);
     }
 }
