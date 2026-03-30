@@ -9,6 +9,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.SharedPreferences;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -85,8 +88,27 @@ public class LoginActivity extends AppCompatActivity {
 
                 int response_code = connection.getResponseCode();
 
+                String userId = null;
+                if (response_code == 200) {
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                    StringBuilder sb = new StringBuilder();
+                    String line;
+                    while ((line = reader.readLine()) != null)
+                        sb.append(line);
+                    reader.close();
+                    JSONObject responseJson = new JSONObject(sb.toString());
+                    if (responseJson.has("userId") && !responseJson.isNull("userId")) {
+                        userId = responseJson.getString("userId");
+                    }
+                }
+
+                final String finalUserId = userId;
                 handler.post(() -> {
                     if (response_code == 200) {
+                        if (finalUserId != null) {
+                            SharedPreferences prefs = getSharedPreferences("TicketApp", MODE_PRIVATE);
+                            prefs.edit().putString("userId", finalUserId).apply();
+                        }
                         Toast.makeText(LoginActivity.this, "Login Successful!", Toast.LENGTH_SHORT).show();
                         Intent intent = new Intent(LoginActivity.this, EventBrowseActivity.class);
                         startActivity(intent);
