@@ -43,6 +43,7 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
         holder.btnReserve.setOnClickListener(v -> {
             android.content.Intent intent = new android.content.Intent(v.getContext(), ReservationActivity.class);
 
+            intent.putExtra("EVENT_ID", event.getId());
             intent.putExtra("EVENT_TITLE", event.getTitle());
             intent.putExtra("EVENT_DATETIME", event.getDateTime());
             intent.putExtra("EVENT_LOCATION", event.getLocation());
