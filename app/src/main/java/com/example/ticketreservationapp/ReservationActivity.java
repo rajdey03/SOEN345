@@ -27,6 +27,10 @@ public class ReservationActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_reservation);
 
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        }
+
         TextView tvTitle = findViewById(R.id.tvCheckoutEventTitle);
         TextView tvDateTime = findViewById(R.id.tvCheckoutEventDateTime);
         TextView tvLocation = findViewById(R.id.tvCheckoutEventLocation);
