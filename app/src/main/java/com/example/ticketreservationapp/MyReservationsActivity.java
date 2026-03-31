@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import android.widget.ImageButton;
 
 public class MyReservationsActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
@@ -26,7 +27,10 @@ public class MyReservationsActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_my_reservations);
+        ImageButton btnBack = findViewById(R.id.btnBack);
+        btnBack.setOnClickListener(v -> finish());
 
         recyclerView = findViewById(R.id.recyclerViewReservations);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -37,7 +41,6 @@ public class MyReservationsActivity extends AppCompatActivity {
     }
 
     private void fetchReservations() {
-        // TODO: Replace with actual userId from login/session
         String userId = getSharedPreferences("TicketApp", MODE_PRIVATE).getString("userId", null);
         if (userId == null) {
             Toast.makeText(this, "Please log in first.", Toast.LENGTH_LONG).show();
