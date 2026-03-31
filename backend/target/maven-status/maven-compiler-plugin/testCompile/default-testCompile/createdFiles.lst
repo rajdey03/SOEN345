@@ -1,9 +1,0 @@
-com\example\ticketreservation\controller\RegistrationControllerIntegrationTest.class
-com\example\ticketreservation\controller\AdminEventControllerIntegrationTest.class
-com\example\ticketreservation\service\RegistrationServiceTest.class
-com\example\ticketreservation\TicketReservationApplicationTests.class
-com\example\ticketreservation\service\NotificationServiceImplTest.class
-com\example\ticketreservation\controller\CustomerControllerTest.class
-com\example\ticketreservation\controller\CustomerControllerIntegrationTest.class
-com\example\ticketreservation\service\CustomerEventServiceTest.class
-com\example\ticketreservation\service\CustomerReservationServiceTest.class
