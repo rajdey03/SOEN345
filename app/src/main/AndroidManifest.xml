@@ -14,7 +14,8 @@
         android:theme="@style/Theme.TicketReservationApp">
         <activity
             android:name=".ReservationActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:parentActivityName=".EventBrowseActivity" />
         <activity
             android:name=".LoginActivity"
             android:exported="true">

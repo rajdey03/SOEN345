@@ -63,6 +63,12 @@ public class EventBrowseActivity extends AppCompatActivity {
         fetchEventsFromBackend();
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        fetchEventsFromBackend();
+    }
+
     private void fetchEventsFromBackend() {
         ExecutorService executor = Executors.newSingleThreadExecutor();
         Handler handler = new Handler(Looper.getMainLooper());
@@ -112,27 +118,32 @@ public class EventBrowseActivity extends AppCompatActivity {
                     });
 
                 } else {
-                    handler.post(() -> Toast.makeText(EventBrowseActivity.this, "Failed to load events", Toast.LENGTH_SHORT).show());
+                    handler.post(() -> Toast
+                            .makeText(EventBrowseActivity.this, "Failed to load events", Toast.LENGTH_SHORT).show());
                 }
                 connection.disconnect();
 
             } catch (Exception e) {
                 e.printStackTrace();
-                handler.post(() -> Toast.makeText(EventBrowseActivity.this, "Network error: " + e.getMessage(), Toast.LENGTH_LONG).show());
+                handler.post(() -> Toast
+                        .makeText(EventBrowseActivity.this, "Network error: " + e.getMessage(), Toast.LENGTH_LONG)
+                        .show());
             }
         });
     }
 
     private void setupSpinners() {
-        String[] categories = {"ALL", "CONCERT", "SPORTS", "MOVIE", "TRAVEL"};
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, categories);
+        String[] categories = { "ALL", "CONCERT", "SPORTS", "MOVIE", "TRAVEL" };
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item,
+                categories);
         spinnerCategory.setAdapter(adapter);
     }
 
     private void setupFilters() {
         etSearchEvents.addTextChangedListener(new TextWatcher() {
             @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
@@ -140,7 +151,8 @@ public class EventBrowseActivity extends AppCompatActivity {
             }
 
             @Override
-            public void afterTextChanged(Editable s) {}
+            public void afterTextChanged(Editable s) {
+            }
         });
 
         spinnerCategory.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -150,7 +162,8 @@ public class EventBrowseActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onNothingSelected(AdapterView<?> parent) {}
+            public void onNothingSelected(AdapterView<?> parent) {
+            }
         });
     }
 
