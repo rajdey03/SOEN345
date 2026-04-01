@@ -83,4 +83,34 @@ public class CustomerReservationService {
 
         return ReservationResponse.from(saved);
     }
+    public java.util.List<ReservationResponse> getReservationsForUser(UUID userId) {
+        java.util.List<Reservation> reservations = reservationRepository.findByUser_UserId(userId);
+        java.util.List<ReservationResponse> responses = new java.util.ArrayList<>();
+        for (Reservation r : reservations) {
+            responses.add(ReservationResponse.from(r));
+        }
+        return responses;
+    }
+
+    @Transactional
+    public boolean cancelReservation(UUID reservationId, UUID userId) {
+        java.util.Optional<Reservation> reservationOpt = reservationRepository.findById(reservationId);
+        if (reservationOpt.isPresent()) {
+            Reservation reservation = reservationOpt.get();
+            if (!reservation.getUser().getUserId().equals(userId)) {
+                return false;
+            }
+            reservation.setStatus(ReservationStatus.CANCELLED);
+            // Increase event capacity
+            Event event = reservation.getEvent();
+            event.setAvailableCapacity(event.getAvailableCapacity() + reservation.getQuantity());
+            if (event.getAvailableCapacity() > 0 && event.getStatus() == EventStatus.SOLD_OUT) {
+                event.setStatus(EventStatus.ACTIVE);
+            }
+            eventRepository.save(event);
+            reservationRepository.save(reservation);
+            return true;
+        }
+        return false;
+    }
 }

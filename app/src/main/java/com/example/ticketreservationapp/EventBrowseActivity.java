@@ -11,6 +11,7 @@ import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
+import android.widget.Button;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -44,6 +45,11 @@ public class EventBrowseActivity extends AppCompatActivity {
         recyclerViewEvents = findViewById(R.id.recyclerViewEvents);
         etSearchEvents = findViewById(R.id.etSearchEvents);
         spinnerCategory = findViewById(R.id.spinnerCategory);
+
+        Button btnMyReservations = findViewById(R.id.btnMyReservations);
+        btnMyReservations.setOnClickListener(v -> {
+            startActivity(new android.content.Intent(EventBrowseActivity.this, MyReservationsActivity.class));
+        });
 
         recyclerViewEvents.setLayoutManager(new LinearLayoutManager(this));
 

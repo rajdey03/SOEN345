@@ -59,4 +59,26 @@ public class CustomerController {
         ReservationResponse response = customerReservationService.createReservation(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
+
+    // ---------------------------------------------------------------
+    // GET /api/customers/reservations?userId=... — List user's reservations
+    // ---------------------------------------------------------------
+    @GetMapping("/reservations")
+    public ResponseEntity<List<ReservationResponse>> getUserReservations(@RequestParam UUID userId) {
+        List<ReservationResponse> reservations = customerReservationService.getReservationsForUser(userId);
+        return ResponseEntity.ok(reservations);
+    }
+
+    // ---------------------------------------------------------------
+    // DELETE /api/customers/reservations/{reservationId}?userId=... — Cancel reservation
+    // ---------------------------------------------------------------
+    @DeleteMapping("/reservations/{reservationId}")
+    public ResponseEntity<?> cancelReservation(@PathVariable UUID reservationId, @RequestParam UUID userId) {
+        boolean cancelled = customerReservationService.cancelReservation(reservationId, userId);
+        if (cancelled) {
+            return ResponseEntity.ok().body("Reservation cancelled.");
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Reservation not found or not yours.");
+        }
+    }
 }

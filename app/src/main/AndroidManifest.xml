@@ -37,6 +37,9 @@
         <activity
             android:name=".EventBrowseActivity"
             android:exported="false" />
+        <activity
+            android:name=".MyReservationsActivity"
+            android:exported="false" />
     </application>
 
 </manifest>
