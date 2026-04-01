@@ -69,5 +69,16 @@
             android:textStyle="bold"
             android:padding="8dp"/>
 
+        <TextView
+            android:id="@+id/tvAdminPortal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Admin Portal"
+            android:textSize="14sp"
+            android:textColor="@color/primaryDarkColor"
+            android:textStyle="bold"
+            android:padding="8dp"
+            android:layout_marginTop="8dp"/>
+
     </LinearLayout>
 </ScrollView>

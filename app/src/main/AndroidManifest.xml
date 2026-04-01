@@ -13,6 +13,12 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.TicketReservationApp">
         <activity
+            android:name=".AdminEventFormActivity"
+            android:exported="false" />
+        <activity
+            android:name=".AdminEventListActivity"
+            android:exported="false" />
+        <activity
             android:name=".ReservationActivity"
             android:exported="false"
             android:parentActivityName=".EventBrowseActivity" />
