@@ -20,6 +20,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -261,5 +262,119 @@ class CustomerReservationServiceTest {
         assertThatThrownBy(() -> customerReservationService.createReservation(request))
                 .isInstanceOf(InsufficientCapacityException.class)
                 .hasMessageContaining("Not enough tickets");
+    }
+
+    // --- Cancel reservation tests ---
+
+    @Test
+    void cancelReservation_returnsFalseWhenReservationNotFound() {
+        UUID reservationId = UUID.randomUUID();
+        when(reservationRepository.findById(reservationId)).thenReturn(Optional.empty());
+
+        boolean cancelled = customerReservationService.cancelReservation(reservationId, userId);
+
+        assertThat(cancelled).isFalse();
+        verify(reservationRepository, never()).save(any(Reservation.class));
+        verify(eventRepository, never()).save(any(Event.class));
+    }
+
+    @Test
+    void cancelReservation_returnsFalseWhenReservationBelongsToAnotherUser() {
+        UUID reservationId = UUID.randomUUID();
+
+        User otherUser = new User();
+        otherUser.setUserId(UUID.randomUUID());
+
+        Reservation reservation = new Reservation();
+        reservation.setReservationId(reservationId);
+        reservation.setUser(otherUser);
+        reservation.setEvent(sampleEvent);
+        reservation.setQuantity(2);
+        reservation.setStatus(ReservationStatus.CONFIRMED);
+
+        when(reservationRepository.findById(reservationId)).thenReturn(Optional.of(reservation));
+
+        boolean cancelled = customerReservationService.cancelReservation(reservationId, userId);
+
+        assertThat(cancelled).isFalse();
+        verify(reservationRepository, never()).save(any(Reservation.class));
+        verify(eventRepository, never()).save(any(Event.class));
+    }
+
+    @Test
+    void cancelReservation_setsReservationCancelledAndRestoresEventCapacity() {
+        UUID reservationId = UUID.randomUUID();
+
+        sampleEvent.setAvailableCapacity(45);
+        sampleEvent.setStatus(EventStatus.ACTIVE);
+
+        Reservation reservation = new Reservation();
+        reservation.setReservationId(reservationId);
+        reservation.setUser(sampleUser);
+        reservation.setEvent(sampleEvent);
+        reservation.setQuantity(3);
+        reservation.setStatus(ReservationStatus.CONFIRMED);
+
+        when(reservationRepository.findById(reservationId)).thenReturn(Optional.of(reservation));
+
+        boolean cancelled = customerReservationService.cancelReservation(reservationId, userId);
+
+        assertThat(cancelled).isTrue();
+
+        ArgumentCaptor<Reservation> reservationCaptor = ArgumentCaptor.forClass(Reservation.class);
+        verify(reservationRepository).save(reservationCaptor.capture());
+        assertThat(reservationCaptor.getValue().getStatus()).isEqualTo(ReservationStatus.CANCELLED);
+
+        ArgumentCaptor<Event> eventCaptor = ArgumentCaptor.forClass(Event.class);
+        verify(eventRepository).save(eventCaptor.capture());
+        assertThat(eventCaptor.getValue().getAvailableCapacity()).isEqualTo(48);
+        assertThat(eventCaptor.getValue().getStatus()).isEqualTo(EventStatus.ACTIVE);
+    }
+
+    @Test
+    void cancelReservation_reopensSoldOutEventWhenCapacityIsRestored() {
+        UUID reservationId = UUID.randomUUID();
+
+        sampleEvent.setAvailableCapacity(0);
+        sampleEvent.setStatus(EventStatus.SOLD_OUT);
+
+        Reservation reservation = new Reservation();
+        reservation.setReservationId(reservationId);
+        reservation.setUser(sampleUser);
+        reservation.setEvent(sampleEvent);
+        reservation.setQuantity(2);
+        reservation.setStatus(ReservationStatus.CONFIRMED);
+
+        when(reservationRepository.findById(reservationId)).thenReturn(Optional.of(reservation));
+
+        boolean cancelled = customerReservationService.cancelReservation(reservationId, userId);
+
+        assertThat(cancelled).isTrue();
+
+        ArgumentCaptor<Event> eventCaptor = ArgumentCaptor.forClass(Event.class);
+        verify(eventRepository).save(eventCaptor.capture());
+        assertThat(eventCaptor.getValue().getAvailableCapacity()).isEqualTo(2);
+        assertThat(eventCaptor.getValue().getStatus()).isEqualTo(EventStatus.ACTIVE);
+    }
+
+    @Test
+    void getReservationsForUser_returnsMappedReservationResponses() {
+        Reservation reservation = new Reservation();
+        reservation.setReservationId(UUID.randomUUID());
+        reservation.setUser(sampleUser);
+        reservation.setEvent(sampleEvent);
+        reservation.setQuantity(2);
+        reservation.setTotalPrice(new BigDecimal("99.98"));
+        reservation.setStatus(ReservationStatus.CONFIRMED);
+
+        when(reservationRepository.findByUser_UserId(userId)).thenReturn(List.of(reservation));
+
+        List<ReservationResponse> result = customerReservationService.getReservationsForUser(userId);
+
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getReservationId()).isEqualTo(reservation.getReservationId());
+        assertThat(result.get(0).getCustomerId()).isEqualTo(userId);
+        assertThat(result.get(0).getEventId()).isEqualTo(eventId);
+        assertThat(result.get(0).getStatus()).isEqualTo(ReservationStatus.CONFIRMED);
     }
 }

@@ -32,6 +32,9 @@ import static org.hamcrest.Matchers.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.never;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -271,6 +274,79 @@ class CustomerControllerTest {
                         .content(body))
                 .andExpect(status().isBadRequest());
     }
+
+        // ---------------------------------------------------------------
+        // GET /api/customers/reservations — List user reservations
+        // ---------------------------------------------------------------
+
+        @Test
+        void getUserReservations_returnsListForProvidedUser() throws Exception {
+                UUID userId = UUID.randomUUID();
+
+                ReservationResponse response = new ReservationResponse();
+                response.setReservationId(UUID.randomUUID());
+                response.setCustomerId(userId);
+                response.setEventId(UUID.randomUUID());
+                response.setEventTitle("Jazz Night");
+                response.setQuantity(2);
+                response.setTotalPrice(new BigDecimal("99.98"));
+                response.setStatus(ReservationStatus.CONFIRMED);
+
+                when(customerReservationService.getReservationsForUser(userId)).thenReturn(List.of(response));
+
+                mockMvc.perform(get("/api/customers/reservations")
+                                                .param("userId", userId.toString()))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$", hasSize(1)))
+                                .andExpect(jsonPath("$[0].customerId", is(userId.toString())))
+                                .andExpect(jsonPath("$[0].eventTitle", is("Jazz Night")));
+
+                verify(customerReservationService).getReservationsForUser(userId);
+        }
+
+        // ---------------------------------------------------------------
+        // DELETE /api/customers/reservations/{reservationId} — Cancel
+        // ---------------------------------------------------------------
+
+        @Test
+        void cancelReservation_returnsOkWhenCancellationSucceeds() throws Exception {
+                UUID reservationId = UUID.randomUUID();
+                UUID userId = UUID.randomUUID();
+
+                when(customerReservationService.cancelReservation(reservationId, userId)).thenReturn(true);
+
+                mockMvc.perform(delete("/api/customers/reservations/{reservationId}", reservationId)
+                                                .param("userId", userId.toString()))
+                                .andExpect(status().isOk())
+                                .andExpect(content().string(containsString("Reservation cancelled")));
+
+                verify(customerReservationService).cancelReservation(reservationId, userId);
+        }
+
+        @Test
+        void cancelReservation_returns404WhenReservationNotFoundOrNotOwned() throws Exception {
+                UUID reservationId = UUID.randomUUID();
+                UUID userId = UUID.randomUUID();
+
+                when(customerReservationService.cancelReservation(reservationId, userId)).thenReturn(false);
+
+                mockMvc.perform(delete("/api/customers/reservations/{reservationId}", reservationId)
+                                                .param("userId", userId.toString()))
+                                .andExpect(status().isNotFound())
+                                .andExpect(content().string(containsString("Reservation not found or not yours")));
+
+                verify(customerReservationService).cancelReservation(reservationId, userId);
+        }
+
+        @Test
+        void cancelReservation_returns400WhenUserIdMissing() throws Exception {
+                UUID reservationId = UUID.randomUUID();
+
+                mockMvc.perform(delete("/api/customers/reservations/{reservationId}", reservationId))
+                                .andExpect(status().isBadRequest());
+
+                verify(customerReservationService, never()).cancelReservation(any(), any());
+        }
 
     // --- Helper methods ---
 
