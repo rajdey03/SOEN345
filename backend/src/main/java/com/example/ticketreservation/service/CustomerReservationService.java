@@ -24,15 +24,18 @@ public class CustomerReservationService {
     private final EventRepository eventRepository;
     private final ReservationRepository reservationRepository;
     private final TicketRepository ticketRepository;
+    private final NotificationService notificationService;
 
     public CustomerReservationService(UserRepository userRepository,
                                        EventRepository eventRepository,
                                        ReservationRepository reservationRepository,
-                                       TicketRepository ticketRepository) {
+                                       TicketRepository ticketRepository,
+                                       NotificationService notificationService) {
         this.userRepository = userRepository;
         this.eventRepository = eventRepository;
         this.reservationRepository = reservationRepository;
         this.ticketRepository = ticketRepository;
+        this.notificationService = notificationService;
     }
 
     @Transactional
@@ -80,6 +83,7 @@ public class CustomerReservationService {
             event.setStatus(EventStatus.SOLD_OUT);
         }
         eventRepository.save(event);
+        notificationService.sendReservationConfirmation(saved);
 
         return ReservationResponse.from(saved);
     }
@@ -109,6 +113,7 @@ public class CustomerReservationService {
             }
             eventRepository.save(event);
             reservationRepository.save(reservation);
+            notificationService.sendCancellationConfirmation(reservation);
             return true;
         }
         return false;

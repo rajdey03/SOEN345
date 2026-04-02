@@ -44,6 +44,9 @@ class CustomerReservationServiceTest {
     @Mock
     private TicketRepository ticketRepository;
 
+    @Mock
+    private NotificationService notificationService;
+
     @InjectMocks
     private CustomerReservationService customerReservationService;
 
@@ -110,6 +113,7 @@ class CustomerReservationServiceTest {
         assertThat(response.getQuantity()).isEqualTo(2);
         assertThat(response.getTotalPrice()).isEqualByComparingTo(new BigDecimal("99.98"));
         assertThat(response.getStatus()).isEqualTo(ReservationStatus.CONFIRMED);
+        verify(notificationService).sendReservationConfirmation(any(Reservation.class));
     }
 
     @Test
@@ -154,6 +158,7 @@ class CustomerReservationServiceTest {
         customerReservationService.createReservation(request);
 
         verify(ticketRepository, times(4)).save(any(Ticket.class));
+        verify(notificationService).sendReservationConfirmation(any(Reservation.class));
     }
 
     @Test
@@ -276,6 +281,7 @@ class CustomerReservationServiceTest {
         assertThat(cancelled).isFalse();
         verify(reservationRepository, never()).save(any(Reservation.class));
         verify(eventRepository, never()).save(any(Event.class));
+        verify(notificationService, never()).sendCancellationConfirmation(any(Reservation.class));
     }
 
     @Test
@@ -299,6 +305,7 @@ class CustomerReservationServiceTest {
         assertThat(cancelled).isFalse();
         verify(reservationRepository, never()).save(any(Reservation.class));
         verify(eventRepository, never()).save(any(Event.class));
+        verify(notificationService, never()).sendCancellationConfirmation(any(Reservation.class));
     }
 
     @Test
@@ -329,6 +336,7 @@ class CustomerReservationServiceTest {
         verify(eventRepository).save(eventCaptor.capture());
         assertThat(eventCaptor.getValue().getAvailableCapacity()).isEqualTo(48);
         assertThat(eventCaptor.getValue().getStatus()).isEqualTo(EventStatus.ACTIVE);
+        verify(notificationService).sendCancellationConfirmation(reservation);
     }
 
     @Test
@@ -355,6 +363,7 @@ class CustomerReservationServiceTest {
         verify(eventRepository).save(eventCaptor.capture());
         assertThat(eventCaptor.getValue().getAvailableCapacity()).isEqualTo(2);
         assertThat(eventCaptor.getValue().getStatus()).isEqualTo(EventStatus.ACTIVE);
+        verify(notificationService).sendCancellationConfirmation(reservation);
     }
 
     @Test
