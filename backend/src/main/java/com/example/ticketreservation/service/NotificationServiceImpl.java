@@ -1,5 +1,6 @@
 package com.example.ticketreservation.service;
 
+import com.example.ticketreservation.model.Reservation;
 import com.example.ticketreservation.model.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,7 +27,7 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     public void sendRegistrationConfirmation(User user) {
         if (user.getEmail() != null && !user.getEmail().isBlank()) {
-            sendEmailConfirmation(user);
+            sendRegistrationEmail(user);
         } else {
             logger.info("User has no email; skipping registration email for user: {} {}",
                     user.getFirstName(), user.getLastName());
@@ -34,19 +35,69 @@ public class NotificationServiceImpl implements NotificationService {
         // SMS is intentionally not implemented in Phase 1.
     }
 
-    private void sendEmailConfirmation(User user) {
+    @Override
+    public void sendReservationConfirmation(Reservation reservation) {
+        User user = reservation.getUser();
+        if (user.getEmail() == null || user.getEmail().isBlank()) {
+            logger.info("User has no email; skipping reservation confirmation for reservation {}",
+                    reservation.getReservationId());
+            return;
+        }
+
+        String subject = "Ticket Reservation Confirmation";
+        String body = String.format(
+                "Hello %s %s,\n\nYour reservation for %s has been confirmed.\n" +
+                        "Reservation ID: %s\nTickets: %d\nTotal Price: %s",
+                user.getFirstName(),
+                user.getLastName(),
+                reservation.getEvent().getTitle(),
+                reservation.getReservationId(),
+                reservation.getQuantity(),
+                reservation.getTotalPrice()
+        );
+        sendEmail(user.getEmail(), subject, body, "reservation confirmation");
+    }
+
+    @Override
+    public void sendCancellationConfirmation(Reservation reservation) {
+        User user = reservation.getUser();
+        if (user.getEmail() == null || user.getEmail().isBlank()) {
+            logger.info("User has no email; skipping cancellation confirmation for reservation {}",
+                    reservation.getReservationId());
+            return;
+        }
+
+        String subject = "Ticket Reservation Cancellation";
+        String body = String.format(
+                "Hello %s %s,\n\nYour reservation for %s has been cancelled.\n" +
+                        "Reservation ID: %s\nCancelled Tickets: %d",
+                user.getFirstName(),
+                user.getLastName(),
+                reservation.getEvent().getTitle(),
+                reservation.getReservationId(),
+                reservation.getQuantity()
+        );
+        sendEmail(user.getEmail(), subject, body, "cancellation confirmation");
+    }
+
+    private void sendRegistrationEmail(User user) {
+        String subject = "Booking / Registration Confirmation";
+        String body = String.format("Hello %s %s,\n\nThank you for registering. Your account has been created.",
+                user.getFirstName(), user.getLastName());
+        sendEmail(user.getEmail(), subject, body, "registration email");
+    }
+
+    private void sendEmail(String recipient, String subject, String body, String logContext) {
         try {
             SimpleMailMessage message = new SimpleMailMessage();
             message.setFrom(fromAddress);
-            message.setTo(user.getEmail());
-            message.setSubject("Booking / Registration Confirmation");
-            String body = String.format("Hello %s %s,\n\nThank you for registering. Your account has been created.",
-                    user.getFirstName(), user.getLastName());
+            message.setTo(recipient);
+            message.setSubject(subject);
             message.setText(body);
             mailSender.send(message);
-            logger.info("Registration confirmation email sent to: {}", user.getEmail());
+            logger.info("{} sent to: {}", logContext, recipient);
         } catch (Exception e) {
-            logger.error("Failed to send registration email to {}: {}", user.getEmail(), e.getMessage());
+            logger.error("Failed to send {} to {}: {}", logContext, recipient, e.getMessage());
         }
     }
 }
