@@ -28,7 +28,7 @@ public class LoginActivity extends AppCompatActivity {
     private static final String PREFS_NAME = "TicketApp";
     private static final String PREF_USER_ID = "userId";
     private static final String PREF_ADMIN_USER_ID = "adminUserId";
-    private static final String TEMP_ADMIN_UUID = "319132e6-c2d7-4ccf-bea4-46c4f451e266";
+    private static final String TEMP_ADMIN_UUID = "e8fedc08-e40c-40a7-b003-074543dee3f8";
 
     private EditText user_id_input, password_input;
     private Button login_button;

@@ -1,0 +1,30 @@
+appId: com.example.ticketreservationapp
+env:
+  TEST_EVENT_TITLE: ${TEST_EVENT_TITLE}
+---
+- extendedWaitUntil:
+    visible: "Discover Events"
+    timeout: 20000
+- tapOn:
+    id: "etSearchEvents"
+- inputText: "${TEST_EVENT_TITLE}"
+- hideKeyboard
+- extendedWaitUntil:
+    visible: "${TEST_EVENT_TITLE}"
+    timeout: 30000
+- assertVisible: "${TEST_EVENT_TITLE}"
+- tapOn: "Reserve Tickets"
+- extendedWaitUntil:
+    visible: "Complete Your Booking"
+    timeout: 20000
+- assertVisible: "${TEST_EVENT_TITLE}"
+- tapOn:
+    id: "etTicketQuantity"
+- inputText: "2"
+- hideKeyboard
+- tapOn:
+    id: "btnConfirmReservation"
+- extendedWaitUntil:
+    visible: "Discover Events"
+    timeout: 30000
+- assertVisible: "Discover Events"

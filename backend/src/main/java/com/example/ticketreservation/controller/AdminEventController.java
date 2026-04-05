@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -18,6 +19,12 @@ public class AdminEventController {
 
     public AdminEventController(AdminEventService adminEventService) {
         this.adminEventService = adminEventService;
+    }
+
+    @GetMapping
+    public ResponseEntity<List<AdminEventResponse>> getEvents(
+            @RequestHeader("X-Admin-User-Id") UUID adminUserId) {
+        return ResponseEntity.ok(adminEventService.getEvents(adminUserId));
     }
 
     @PostMapping

@@ -1,0 +1,13 @@
+appId: com.example.ticketreservationapp
+env:
+  UPDATED_EVENT_TITLE: ${UPDATED_EVENT_TITLE}
+---
+- extendedWaitUntil:
+    visible: "Manage Events"
+    timeout: 20000
+- assertVisible: "${UPDATED_EVENT_TITLE}"
+- tapOn: "Cancel"
+- extendedWaitUntil:
+    visible: "Status: CANCELLED"
+    timeout: 30000
+- assertVisible: "Status: CANCELLED"

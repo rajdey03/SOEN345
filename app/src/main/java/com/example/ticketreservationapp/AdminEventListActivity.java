@@ -15,6 +15,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
@@ -42,7 +45,6 @@ public class AdminEventListActivity extends AppCompatActivity implements AdminEv
         RecyclerView recyclerViewAdminEvents = findViewById(R.id.recyclerViewAdminEvents);
 
         recyclerViewAdminEvents.setLayoutManager(new LinearLayoutManager(this));
-        adminEvents.addAll(buildPlaceholderEvents());
         adminEventAdapter = new AdminEventAdapter(adminEvents, this);
         recyclerViewAdminEvents.setAdapter(adminEventAdapter);
 
@@ -71,6 +73,8 @@ public class AdminEventListActivity extends AppCompatActivity implements AdminEv
                         } else {
                             adminEventAdapter.addEvent(updatedEvent);
                         }
+
+                        loadEventsViaApi();
                     }
                 }
         );
@@ -80,6 +84,14 @@ public class AdminEventListActivity extends AppCompatActivity implements AdminEv
             intent.putExtra(AdminEventFormActivity.EXTRA_MODE, AdminEventFormActivity.MODE_CREATE);
             formLauncher.launch(intent);
         });
+
+        loadEventsViaApi();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        loadEventsViaApi();
     }
 
     @Override
@@ -172,51 +184,72 @@ public class AdminEventListActivity extends AppCompatActivity implements AdminEv
         return AdminEventListLogic.parseErrorMessage(body);
     }
 
-    private List<AdminEvent> buildPlaceholderEvents() {
-        List<AdminEvent> adminEvents = new ArrayList<>();
+    private void loadEventsViaApi() {
+        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        String adminUserId = prefs.getString(PREF_ADMIN_USER_ID, null);
+        if (adminUserId == null || adminUserId.trim().isEmpty()) {
+            Toast.makeText(this, "Admin access is missing. Open the Admin Portal again.", Toast.LENGTH_LONG).show();
+            return;
+        }
 
-        adminEvents.add(new AdminEvent(
-                "event-001",
-                "org-001",
-                "Montreal Jazz Evening",
-                "A night of live jazz performances.",
-                "CONCERT",
-                "Place des Arts",
-                "2026-06-14",
-                "19:00",
-                "22:00",
-                180,
-                "ACTIVE"
-        ));
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        Handler handler = new Handler(Looper.getMainLooper());
 
-        adminEvents.add(new AdminEvent(
-                "event-002",
-                "org-001",
-                "City Food Expo",
-                "A downtown showcase of local restaurants.",
-                "EXPO",
-                "Palais des congres",
-                "2026-07-08",
-                "10:00",
-                "17:00",
-                300,
-                "ACTIVE"
-        ));
+        executor.execute(() -> {
+            HttpURLConnection connection = null;
+            try {
+                URL url = new URL("http://10.0.2.2:8080/api/admin/events");
+                connection = (HttpURLConnection) url.openConnection();
+                connection.setRequestMethod("GET");
+                connection.setRequestProperty("Accept", "application/json");
+                connection.setRequestProperty("X-Admin-User-Id", adminUserId);
 
-        adminEvents.add(new AdminEvent(
-                "event-003",
-                "org-002",
-                "Late Night Screening",
-                "Special one-night film screening.",
-                "MOVIE",
-                "Cinema Banque Scotia",
-                "2026-08-01",
-                "21:00",
-                "23:30",
-                120,
-                "CANCELLED"
-        ));
+                int responseCode = connection.getResponseCode();
+                String responseBody = readResponseBody(connection, responseCode);
 
-        return adminEvents;
+                handler.post(() -> {
+                    if (responseCode == 200) {
+                        adminEvents.clear();
+                        adminEvents.addAll(parseEvents(responseBody));
+                        adminEventAdapter.notifyDataSetChanged();
+                    } else {
+                        Toast.makeText(this, parseErrorMessage(responseBody), Toast.LENGTH_LONG).show();
+                    }
+                });
+            } catch (Exception e) {
+                e.printStackTrace();
+                handler.post(() -> Toast.makeText(this, "Network Error: " + e.getMessage(), Toast.LENGTH_LONG).show());
+            } finally {
+                if (connection != null) {
+                    connection.disconnect();
+                }
+            }
+        });
+    }
+
+    private List<AdminEvent> parseEvents(String responseBody) {
+        List<AdminEvent> parsedEvents = new ArrayList<>();
+        try {
+            JSONArray items = new JSONArray(responseBody);
+            for (int i = 0; i < items.length(); i++) {
+                JSONObject item = items.getJSONObject(i);
+                parsedEvents.add(new AdminEvent(
+                        item.optString("event_id", ""),
+                        item.optString("organizer_id", ""),
+                        item.optString("title", ""),
+                        item.optString("description", ""),
+                        item.optString("category", ""),
+                        item.optString("location", ""),
+                        item.optString("event_date", ""),
+                        item.optString("start_time", ""),
+                        item.optString("end_time", ""),
+                        item.optInt("total_capacity", 0),
+                        item.optString("status", "ACTIVE")
+                ));
+            }
+        } catch (Exception ignored) {
+            return parsedEvents;
+        }
+        return parsedEvents;
     }
 }

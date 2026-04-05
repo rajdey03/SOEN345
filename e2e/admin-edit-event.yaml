@@ -1,0 +1,29 @@
+appId: com.example.ticketreservationapp
+env:
+  UPDATED_EVENT_TITLE: ${UPDATED_EVENT_TITLE}
+---
+- stopApp
+- launchApp
+- extendedWaitUntil:
+    visible: "Welcome Back"
+    timeout: 20000
+- tapOn: "Admin Portal"
+- extendedWaitUntil:
+    visible: "Manage Events"
+    timeout: 20000
+- tapOn: "Edit"
+- extendedWaitUntil:
+    visible: "Edit Event"
+    timeout: 20000
+- tapOn:
+    id: "etEventTitle"
+- eraseText: 200
+- inputText: "${UPDATED_EVENT_TITLE}"
+- hideKeyboard
+- tapOn:
+    id: "btnSaveEvent"
+- extendedWaitUntil:
+    visible: "${UPDATED_EVENT_TITLE}"
+    timeout: 30000
+- assertVisible: "${UPDATED_EVENT_TITLE}"
+- assertVisible: "Status: ACTIVE"

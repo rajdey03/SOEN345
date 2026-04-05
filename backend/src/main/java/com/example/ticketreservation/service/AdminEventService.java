@@ -16,7 +16,9 @@ import com.example.ticketreservation.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class AdminEventService {
@@ -31,6 +33,15 @@ public class AdminEventService {
         this.userRepository = userRepository;
         this.organizerRepository = organizerRepository;
         this.eventRepository = eventRepository;
+    }
+
+    @Transactional
+    public List<AdminEventResponse> getEvents(UUID adminUserId) {
+        validateAdmin(adminUserId);
+        return eventRepository.findAllByOrderByEventDateDescStartTimeDesc()
+                .stream()
+                .map(AdminEventResponse::from)
+                .collect(Collectors.toList());
     }
 
     @Transactional
