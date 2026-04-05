@@ -1,0 +1,23 @@
+appId: com.example.ticketreservationapp
+env:
+  TEST_EMAIL: ${TEST_EMAIL}
+  TEST_PASSWORD: ${TEST_PASSWORD}
+---
+- extendedWaitUntil:
+    visible: "Welcome Back"
+    timeout: 20000
+- tapOn:
+    id: "etLoginIdentifier"
+- inputText: "${TEST_EMAIL}"
+- tapOn:
+    id: "etLoginPassword"
+- inputText: "${TEST_PASSWORD}"
+- hideKeyboard
+- tapOn:
+    id: "btnLogin"
+- extendedWaitUntil:
+    visible: "Discover Events"
+    timeout: 30000
+- assertVisible: "Discover Events"
+- assertVisible:
+    id: "btnMyReservations"

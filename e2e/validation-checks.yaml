@@ -1,0 +1,33 @@
+appId: com.example.ticketreservationapp
+env:
+  TEST_PASSWORD: ${TEST_PASSWORD}
+---
+- stopApp
+- launchApp
+- extendedWaitUntil:
+    visible: "Welcome Back"
+    timeout: 20000
+- tapOn:
+    id: "btnLogin"
+- assertVisible: "Please enter your email or phone number"
+- tapOn:
+    id: "tvGoToRegister"
+- extendedWaitUntil:
+    visible: "Create Account"
+    timeout: 20000
+- tapOn:
+    id: "btnRegister"
+- assertVisible: "First name is required"
+- tapOn:
+    id: "etFirstName"
+- inputText: "Test"
+- tapOn:
+    id: "etLastName"
+- inputText: "User"
+- tapOn:
+    id: "etPassword"
+- inputText: "123"
+- hideKeyboard
+- tapOn:
+    id: "btnRegister"
+- assertVisible: "Password must be at least 6 characters"

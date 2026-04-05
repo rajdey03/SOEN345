@@ -1,0 +1,41 @@
+appId: com.example.ticketreservationapp
+env:
+  TEST_EMAIL: ${TEST_EMAIL}
+  TEST_PHONE: ${TEST_PHONE}
+  TEST_PASSWORD: ${TEST_PASSWORD}
+---
+- back
+- stopApp
+- launchApp
+- extendedWaitUntil:
+    visible: "Welcome Back"
+    timeout: 20000
+- tapOn:
+    id: "tvGoToRegister"
+- extendedWaitUntil:
+    visible: "Create Account"
+    timeout: 20000
+- tapOn:
+    id: "etFirstName"
+- inputText: "Diego"
+- tapOn:
+    id: "etLastName"
+- inputText: "QA"
+- tapOn:
+    id: "etEmail"
+- inputText: "${TEST_EMAIL}"
+- tapOn:
+    id: "etPhone"
+- inputText: "${TEST_PHONE}"
+- tapOn:
+    id: "etPassword"
+- inputText: "${TEST_PASSWORD}"
+- hideKeyboard
+- tapOn:
+    id: "btnRegister"
+- extendedWaitUntil:
+    visible: "Welcome Back"
+    timeout: 30000
+- assertVisible: "Welcome Back"
+- assertVisible:
+    id: "btnLogin"

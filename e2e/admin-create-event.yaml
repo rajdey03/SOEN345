@@ -1,0 +1,60 @@
+appId: com.example.ticketreservationapp
+env:
+  TEST_EVENT_TITLE: ${TEST_EVENT_TITLE}
+  DEMO_ORGANIZER_ID: ${DEMO_ORGANIZER_ID}
+---
+- tapOn: "Admin Portal"
+- extendedWaitUntil:
+    visible: "Manage Events"
+    timeout: 20000
+- tapOn:
+    id: "btnAddEvent"
+- extendedWaitUntil:
+    visible: "Create Event"
+    timeout: 20000
+- assertVisible:
+    id: "etOrganizerId"
+- tapOn:
+    id: "etOrganizerId"
+- eraseText
+- inputText: "${DEMO_ORGANIZER_ID}"
+- tapOn:
+    id: "etEventTitle"
+- inputText: "${TEST_EVENT_TITLE}"
+- tapOn:
+    id: "etEventDescription"
+- inputText: "End to end validation event created by Maestro."
+- tapOn:
+    id: "etEventCategory"
+- inputText: "CONCERT"
+- tapOn:
+    id: "etEventLocation"
+- inputText: "Place des Arts"
+- tapOn:
+    id: "etEventDate"
+- inputText: "2026-12-15"
+- tapOn:
+    id: "etStartTime"
+- inputText: "19:00"
+- tapOn:
+    id: "etEndTime"
+- inputText: "21:00"
+- tapOn:
+    id: "etTotalCapacity"
+- inputText: "120"
+- hideKeyboard
+- tapOn:
+    id: "btnSaveEvent"
+- extendedWaitUntil:
+    visible: "Manage Events"
+    timeout: 30000
+- scrollUntilVisible:
+    element: "${TEST_EVENT_TITLE}"
+    direction: UP
+    timeout: 15000
+    speed: 5
+- extendedWaitUntil:
+    visible: "${TEST_EVENT_TITLE}"
+    timeout: 30000
+- assertVisible: "${TEST_EVENT_TITLE}"
+- assertVisible: "Status: ACTIVE"

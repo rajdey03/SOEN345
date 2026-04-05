@@ -1,0 +1,20 @@
+appId: com.example.ticketreservationapp
+---
+- launchApp
+- runFlow:
+    file: admin-create-event.yaml
+- runFlow:
+    file: customer-register.yaml
+- runFlow:
+    file: customer-login.yaml
+- runFlow:
+    file: customer-browse-and-reserve.yaml
+- runFlow:
+    file: customer-view-and-cancel-reservation.yaml
+- runFlow:
+    file: admin-edit-event.yaml
+- runFlow:
+    file: admin-cancel-event.yaml
+- runFlow:
+    file: validation-checks.yaml
+- stopApp

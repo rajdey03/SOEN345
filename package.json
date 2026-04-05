@@ -1,0 +1,18 @@
+{
+  "name": "soen345-e2e",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Maestro E2E runner for the SOEN345 mobile app",
+  "scripts": {
+    "test": "node scripts/run-maestro-e2e.js run-all",
+    "e2e": "node scripts/run-maestro-e2e.js run-all",
+    "e2e:admin:create": "node scripts/run-maestro-e2e.js admin-create-event",
+    "e2e:admin:edit": "node scripts/run-maestro-e2e.js admin-edit-event",
+    "e2e:admin:cancel": "node scripts/run-maestro-e2e.js admin-cancel-event",
+    "e2e:customer:register": "node scripts/run-maestro-e2e.js customer-register",
+    "e2e:customer:login": "node scripts/run-maestro-e2e.js customer-login",
+    "e2e:customer:reserve": "node scripts/run-maestro-e2e.js customer-browse-and-reserve",
+    "e2e:customer:cancel": "node scripts/run-maestro-e2e.js customer-view-and-cancel-reservation",
+    "e2e:validation": "node scripts/run-maestro-e2e.js validation-checks"
+  }
+}
