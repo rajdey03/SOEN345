@@ -12,6 +12,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDate;
@@ -19,12 +20,14 @@ import java.time.LocalTime;
 import java.util.UUID;
 
 import static org.hamcrest.Matchers.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@ActiveProfiles("h2")
 class CustomerControllerIntegrationTest {
 
     @MockBean
@@ -296,6 +299,68 @@ class CustomerControllerIntegrationTest {
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.message", containsString("cancelled")));
     }
+
+        // =======================================================================
+        // DELETE /api/customers/reservations/{reservationId} — Cancellation
+        // =======================================================================
+
+        @Test
+        void cancelReservation_successfullyCancelsAndRestoresCapacity() throws Exception {
+                Event event = eventRepository.findById(eventId).orElseThrow();
+                event.setAvailableCapacity(77);
+                eventRepository.save(event);
+
+                Reservation reservation = new Reservation();
+                reservation.setUser(userRepository.findById(customerId).orElseThrow());
+                reservation.setEvent(event);
+                reservation.setQuantity(3);
+                reservation.setTotalPrice(java.math.BigDecimal.valueOf(149.97));
+                reservation.setStatus(ReservationStatus.CONFIRMED);
+                reservation = reservationRepository.save(reservation);
+
+                mockMvc.perform(delete("/api/customers/reservations/{reservationId}", reservation.getReservationId())
+                                                .param("userId", customerId.toString()))
+                                .andExpect(status().isOk())
+                                .andExpect(content().string("Reservation cancelled."));
+
+                Reservation persistedReservation = reservationRepository.findById(reservation.getReservationId()).orElseThrow();
+                Event persistedEvent = eventRepository.findById(eventId).orElseThrow();
+
+                org.junit.jupiter.api.Assertions.assertEquals(ReservationStatus.CANCELLED, persistedReservation.getStatus());
+                org.junit.jupiter.api.Assertions.assertEquals(80, persistedEvent.getAvailableCapacity());
+        }
+
+        @Test
+        void cancelReservation_returnsNotFoundWhenReservationDoesNotBelongToUser() throws Exception {
+                User otherCustomer = new User("Other", "User", "other@example.com", null, "hashed");
+                otherCustomer.setRole(UserRole.CUSTOMER);
+                UUID otherCustomerId = userRepository.save(otherCustomer).getUserId();
+
+                Event event = eventRepository.findById(eventId).orElseThrow();
+                Reservation reservation = new Reservation();
+                reservation.setUser(userRepository.findById(customerId).orElseThrow());
+                reservation.setEvent(event);
+                reservation.setQuantity(1);
+                reservation.setTotalPrice(java.math.BigDecimal.valueOf(49.99));
+                reservation.setStatus(ReservationStatus.CONFIRMED);
+                reservation = reservationRepository.save(reservation);
+
+                mockMvc.perform(delete("/api/customers/reservations/{reservationId}", reservation.getReservationId())
+                                                .param("userId", otherCustomerId.toString()))
+                                .andExpect(status().isNotFound())
+                                .andExpect(content().string("Reservation not found or not yours."));
+
+                Reservation persistedReservation = reservationRepository.findById(reservation.getReservationId()).orElseThrow();
+                org.junit.jupiter.api.Assertions.assertEquals(ReservationStatus.CONFIRMED, persistedReservation.getStatus());
+        }
+
+        @Test
+        void cancelReservation_returnsNotFoundWhenReservationDoesNotExist() throws Exception {
+                mockMvc.perform(delete("/api/customers/reservations/{reservationId}", UUID.randomUUID())
+                                                .param("userId", customerId.toString()))
+                                .andExpect(status().isNotFound())
+                                .andExpect(content().string("Reservation not found or not yours."));
+        }
 
     // --- Helper ---
 
