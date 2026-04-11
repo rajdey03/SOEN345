@@ -3,6 +3,7 @@
 # Triggers on every push and pull request to main branch.
 # Builds the Spring Boot backend, runs JUnit 5 tests,
 # and builds the Android app.
+# Artifact uploads are best-effort and quota-safe.
 # ============================================================
 
 name: CI/CD Pipeline
@@ -42,18 +43,23 @@ jobs:
       - name: Package application
         run: mvn package -B -DskipTests
 
-      - name: Upload test results
-        if: always()
+      - name: Upload backend test results (on failure)
+        if: failure()
+        continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
           name: backend-test-results
           path: backend/target/surefire-reports/
+          retention-days: 2
 
-      - name: Upload JAR artifact
+      - name: Upload backend JAR artifact (main branch only)
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
           name: backend-jar
           path: backend/target/*.jar
+          retention-days: 1
 
   # ==================== Android Build ====================
   android-build:
@@ -69,6 +75,7 @@ jobs:
         with:
           java-version: "17"
           distribution: "temurin"
+          cache: "gradle"
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
@@ -82,12 +89,14 @@ jobs:
       - name: Run Android unit tests
         run: ./gradlew testDebugUnitTest
 
-      - name: Upload Android test results
-        if: always()
+      - name: Upload Android test results (on failure)
+        if: failure()
+        continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
           name: android-test-results
           path: app/build/test-results/
+          retention-days: 2
 
   # ==================== Combined Status Check ====================
   ci-status:
