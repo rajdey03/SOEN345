@@ -18,14 +18,17 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.UUID;
 
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -34,6 +37,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@ActiveProfiles("h2")
 class AdminEventControllerIntegrationTest {
 
     @MockBean
@@ -110,6 +114,45 @@ class AdminEventControllerIntegrationTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.message", is("User is not authorized to manage events.")));
+    }
+
+    @Test
+    void getEvents_returnsAdminManagedEvents() throws Exception {
+        Event first = new Event();
+        first.setOrganizer(organizerRepository.findById(organizerId).orElseThrow());
+        first.setTitle("Admin Event One");
+        first.setDescription("First admin event");
+        first.setCategory("Concert");
+        first.setLocation("Hall A");
+        first.setEventDate(LocalDate.now().plusDays(3));
+        first.setStartTime(LocalTime.of(18, 0));
+        first.setEndTime(LocalTime.of(20, 0));
+        first.setTotalCapacity(50);
+        first.setAvailableCapacity(50);
+        first.setStatus(EventStatus.ACTIVE);
+        eventRepository.save(first);
+
+        Event second = new Event();
+        second.setOrganizer(organizerRepository.findById(organizerId).orElseThrow());
+        second.setTitle("Admin Event Two");
+        second.setDescription("Second admin event");
+        second.setCategory("Expo");
+        second.setLocation("Hall B");
+        second.setEventDate(LocalDate.now().plusDays(6));
+        second.setStartTime(LocalTime.of(10, 0));
+        second.setEndTime(LocalTime.of(16, 0));
+        second.setTotalCapacity(80);
+        second.setAvailableCapacity(80);
+        second.setStatus(EventStatus.CANCELLED);
+        eventRepository.save(second);
+
+        mockMvc.perform(get("/api/admin/events")
+                        .header("X-Admin-User-Id", adminUserId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(2)))
+                .andExpect(jsonPath("$[0].title", is("Admin Event Two")))
+                .andExpect(jsonPath("$[0].status", is(EventStatus.CANCELLED.name())))
+                .andExpect(jsonPath("$[1].title", is("Admin Event One")));
     }
 
     @Test
