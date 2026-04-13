@@ -87,7 +87,14 @@ SOEN345-main/
 ```
 
 ---
+## How to Run the Frontend
 
+Open the project folder in **Android Studio**, wait for the initial Gradle sync to complete, and start the app:
+
+```text
+1. Open the Device Manager and launch an Android Emulator.
+2. Click the green "Run 'app'" button in the top toolbar (or Shift + F10).
+```
 ## How to Run the Backend
 
 ```bash
