@@ -1,5 +1,6 @@
 package com.example.ticketreservationapp;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -45,6 +46,15 @@ public class EventBrowseActivity extends AppCompatActivity {
         recyclerViewEvents = findViewById(R.id.recyclerViewEvents);
         etSearchEvents = findViewById(R.id.etSearchEvents);
         spinnerCategory = findViewById(R.id.spinnerCategory);
+
+        Button btnLogout = findViewById(R.id.btnLogout);
+        if (btnLogout != null) {
+            btnLogout.setOnClickListener(v -> {
+                Intent intent = new Intent(EventBrowseActivity.this, LoginActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                startActivity(intent);
+            });
+        }
 
         Button btnMyReservations = findViewById(R.id.btnMyReservations);
         btnMyReservations.setOnClickListener(v -> {

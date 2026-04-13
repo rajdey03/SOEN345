@@ -7,6 +7,14 @@
     android:padding="16dp"
     android:background="#F8FAFC">
 
+    <Button
+        android:id="@+id/btnLogout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:text="Logout"
+        android:textColor="#FFFFFF"
+        android:textSize="14sp"/>
 
     <Button
         android:id="@+id/btnMyReservations"

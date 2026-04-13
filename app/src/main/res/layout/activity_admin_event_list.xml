@@ -16,6 +16,17 @@
         android:textColor="#1E40AF"
         android:layout_marginBottom="8dp" />
 
+    <Button
+        android:id="@+id/btnExitAdmin"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_marginBottom="16dp"
+        android:backgroundTint="@color/primaryColor"
+        android:text="Exit Portal"
+        android:textColor="#FFFFFF"
+        android:textSize="12sp" />
+
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

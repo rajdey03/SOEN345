@@ -44,6 +44,15 @@ public class AdminEventListActivity extends AppCompatActivity implements AdminEv
         Button btnAddEvent = findViewById(R.id.btnAddEvent);
         RecyclerView recyclerViewAdminEvents = findViewById(R.id.recyclerViewAdminEvents);
 
+        Button btnExitAdmin = findViewById(R.id.btnExitAdmin);
+        if (btnExitAdmin != null) {
+            btnExitAdmin.setOnClickListener(v -> {
+                Intent intent = new Intent(AdminEventListActivity.this, LoginActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                startActivity(intent);
+            });
+        }
+
         recyclerViewAdminEvents.setLayoutManager(new LinearLayoutManager(this));
         adminEventAdapter = new AdminEventAdapter(adminEvents, this);
         recyclerViewAdminEvents.setAdapter(adminEventAdapter);

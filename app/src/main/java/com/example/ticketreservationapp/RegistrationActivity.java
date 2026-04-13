@@ -1,4 +1,4 @@
-package com.example.ticketreservationapp; // Ensure this matches your package name!
+package com.example.ticketreservationapp;
 
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -7,6 +7,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+import android.widget.ImageButton;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
@@ -28,6 +29,9 @@ public class RegistrationActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_registration);
+
+        ImageButton btnBack = findViewById(R.id.btnBack);
+        btnBack.setOnClickListener(v -> finish());
 
         first_name_input = findViewById(R.id.etFirstName);
         last_name_input = findViewById(R.id.etLastName);
